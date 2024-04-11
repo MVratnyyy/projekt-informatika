@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Blog s Obrázky a Mazáním</title>
+    <link href="https://unpkg.com/tailwindcss@^2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-center my-5">Mini Blog s Obrázky a Mazáním</h1>
+        
+        <div class="flex">
+            <!-- Postranní menu -->
+            <div class="w-1/4 bg-white p-4" id="postsList">
+                <!-- Seznam příspěvků -->
+            </div>
+
+            <!-- Hlavní obsah -->
+            <div class="w-3/4 ml-4">
+                <div id="postContent" class="bg-white p-4 rounded shadow">
+                    <!-- Zobrazený příspěvek -->
+                    Vyberte příspěvek z menu.
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <input type="text" id="postTitle" placeholder="Titulek" class="shadow border rounded w-full py-2 px-3 text-gray-700 mb-2">
+            <input type="text" id="postImage" placeholder="URL obrázku" class="shadow border rounded w-full py-2 px-3 text-gray-700 mb-2">
+            <textarea id="postContentInput" placeholder="Obsah" class="shadow border rounded w-full py-2 px-3 text-gray-700 mb-2" rows="4"></textarea>
+            <button id="saveButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Uložit</button>
+        </div>
+    </div>
+
+    <script>
+let posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+function savePosts() {
+    localStorage.setItem('posts', JSON.stringify(posts));
+    renderPostsList();
+}
+
+function addPost(title, image, content) {
+    const postId = Date.now(); // Jednoduché generování unikátního ID
+    posts.push({ id: postId, title, image, content });
+    savePosts();
+}
+
+function deletePost(postId) {
+    posts = posts.filter(post => post.id !== postId);
+    savePosts();
+    document.getElementById('postContent').innerHTML = 'Vyberte příspěvek z menu.';
+}
+
+function renderPostsList() {
+    const postsList = document.getElementById('postsList');
+    postsList.innerHTML = '';
+    posts.forEach(post => {
+        const postElement = document.createElement('div');
+        postElement.classList.add('cursor-pointer', 'mb-2', 'p-2', 'hover:bg-gray-200', 'rounded');
+        postElement.textContent = post.title;
+        postElement.onclick = () => renderPost(post.id);
+        postsList.appendChild(postElement);
+    });
+}
+
+function renderPost(postId) {
+    const post = posts.find(post => post.id === postId);
+    if (post) {
+        document.getElementById('postContent').innerHTML = `
+            <h2 class="text-xl font-bold">${post.title}</h2>
+            ${post.image ? `<img src="${post.image}" alt="Obrázek" class="max-w-full h-auto rounded mt-2 mb-2">` : ''}
+            <p>${post.content}</p>
+            <button class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="deletePost(${post.id})">Smazat</button>
+        `;
+    }
+}
+
+document.getElementById('saveButton').addEventListener('click', function() {
+    const title = document.getElementById('postTitle').value.trim();
+    const image = document.getElementById('postImage').value.trim();
+    const content = document.getElementById('postContentInput').value.trim();
+
+    if(title && content) {
+        addPost(title, image, content);
+
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postImage').value = '';
+        document.getElementById('postContentInput').value = '';
+    } else {
+        alert('Prosím, vyplňte všechna povinná pole.');
+    }
+});
+
+window.onload = function() {
+    renderPostsList();
+};
+    </script>
+</body>
+</html>
